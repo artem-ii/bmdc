@@ -1,0 +1,97 @@
+---
+title: "BMDC activation xby palmitate and imiquimod"
+subtitle: "H3K27Ac, H3K27me3 ChIP-seq and microarray analysis"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+ROOT_DIR="/media/serlia/Storage 2/artemii/bmdc-analysis/"
+
+knitr::opts_knit$set(root.dir = ROOT_DIR)
+```
+
+## Loading libraries
+```{r}
+library(DiffBind)
+```
+
+## Load sample and file info
+```{r}
+targets <- read.delim("config/diffbind-samples.txt")
+```
+
+
+## Read peaksets into dba object
+```{r}
+bmdc <- dba(sampleSheet = targets)
+bmdc
+```
+
+
+```{r fig.height=5, fig.width=5}
+plot(bmdc)
+```
+## Count reads
+
+Job requires lots of RAM. Will do only AC samples first
+
+### H3K27Ac
+#### Count
+```{r}
+bmdc_ac <- dba(sampleSheet = targets[1:12,])
+bmdc_ac <- dba.count(bmdc_ac)
+```
+
+
+#### Normalize
+```{r}
+bmdc_ac <- dba.normalize(bmdc_ac)
+bmdc_ac
+```
+#### Model
+```{r}
+bmdc_ac <- dba.contrast(bmdc_ac,
+                        reorderMeta = list(Treatment="Mock"))
+bmdc_ac
+```
+#### Contrast
+```{r}
+bmdc_ac <- dba.analyze(bmdc_ac)
+dba.show(bmdc_ac, bContrasts=TRUE)
+```
+#### Correlation plot
+```{r}
+plot(bmdc_ac, contrast=6)
+```
+#### DB report
+```{r}
+bmdc_ac.DB <- dba.report(bmdc_ac)
+bmdc_ac.DB
+```
+
+#### Venn diagram
+```{r}
+dba.plotVenn(bmdc_ac, contrast = 6, bDB = TRUE,
+             bGain = TRUE, bLoss = TRUE, bAll = FALSE)
+```
+#### PCA plot
+```{r}
+dba.plotPCA(bmdc_ac, label = DBA_TREATMENT)
+```
+#### MA plot
+```{r}
+dba.plotMA(bmdc_ac, contrast = 6)
+```
+#### Volcano plot
+```{r}
+dba.plotVolcano(bmdc_ac, contrast = 6)
+```
+
+### H3K27me3
+#### Count
+```{r}
+bmdc_me <- dba(sampleSheet = targets[13:24,])
+bmdc_me <- dba.count(bmdc_me)
+
+```
